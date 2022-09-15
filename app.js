@@ -30,7 +30,7 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
       enum: {
-        value: ["kg", "litre", "pcs"],
+        values: ["kg", "litre", "pcs"],
         message: "Unit value can't be {VALUE}, must be kg/litre/pcs",
       },
     },
@@ -54,31 +54,66 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
       enum: {
-        value: ["in-stock", "out-of-stock", "discontinued"],
+        values: ["in-stock", "out-of-stock", "discontinued"],
         message: "Status can't be {VALUE}",
       },
     },
-    supplier: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Supplier",
-    },
-    catefories: [
-      {
-        name: {
-          type: String,
-          required: true,
-        },
-        _id: mongoose.Schema.Types.ObjectId,
-      },
-    ],
+    // supplier: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Supplier",
+    // },
+    // catefories: [
+    //   {
+    //     name: {
+    //       type: String,
+    //       required: true,
+    //     },
+    //     _id: mongoose.Schema.Types.ObjectId,
+    //   },
+    // ],
   },
   {
     timestamps: true,
   }
 );
 
+// SCHEMA -> MODEL -> QUERY
+
+const Product = mongoose.model("Product", productSchema);
+
 app.get("/", (req, res) => {
   res.send("Route is working! YaY!");
+});
+
+// posting to database
+
+app.post("/api/v1/product", async (req, res, next) => {
+  try {
+    // save or create
+
+    // const result = await Product.create(req.body);
+
+    const product = new Product(req.body);
+
+    // instance creation --> Do something --> save()
+    if (product.quantity === 0) {
+      product.status = "out-of-stock";
+    }
+
+    const result = await product.save();
+
+    res.status(200).json({
+      status: "Success",
+      message: "Data insered successfully!",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "Failed",
+      message: "Data is not inserted",
+      error: error.message,
+    });
+  }
 });
 
 module.exports = app;
