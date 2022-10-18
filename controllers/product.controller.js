@@ -16,8 +16,15 @@ exports.getProducts = async (req, res, next) => {
     //   .lt(600)
     //   .limit(2)
     //   .sort({ quantity: -1 });
+    const queryObject = { ...req.query };
+    // sort ,page ,limit -> exclude
+    const excludeField = ["sort", "page", "limit"];
+    excludeField.forEach((field) => delete queryObject[field]);
 
-    const products = await getProductService(req.query.limit);
+    // console.log("original object", req.query);
+    // console.log("query object", queryObject);
+
+    const products = await getProductService(queryObject);
 
     res.status(200).json({
       status: "success",
@@ -94,7 +101,7 @@ exports.deleteProductById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const result = await deleteProductByIdService(id);
-    console.log(result);
+
     if (!result.deletedCount) {
       return res.status(400).json({
         status: "fail",
