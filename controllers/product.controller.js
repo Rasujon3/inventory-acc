@@ -9,22 +9,28 @@ const {
 
 exports.getProducts = async (req, res, next) => {
   try {
-    // const products = await Product.where("name")
-    //   .equals(/\w/)
-    //   .where("quantity")
-    //   .gt(100)
-    //   .lt(600)
-    //   .limit(2)
-    //   .sort({ quantity: -1 });
-    const queryObject = { ...req.query };
+    const filters = { ...req.query };
+
     // sort ,page ,limit -> exclude
     const excludeField = ["sort", "page", "limit"];
-    excludeField.forEach((field) => delete queryObject[field]);
+    excludeField.forEach((field) => delete filters[field]);
 
-    // console.log("original object", req.query);
-    // console.log("query object", queryObject);
+    const queries = {};
 
-    const products = await getProductService(queryObject);
+    if (req.query.sort) {
+      // price,quantity -> 'price quantity'
+      const sortBy = req.query.sort.split(",").join(" ");
+      queries.sortBy = sortBy;
+      console.log(sortBy);
+    }
+
+    if (req.query.fields) {
+      const fields = req.query.fields.split(",").join(" ");
+      queries.fields = fields;
+      console.log(fields);
+    }
+
+    const products = await getProductService(filters, queries);
 
     res.status(200).json({
       status: "success",
